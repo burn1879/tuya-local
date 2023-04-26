@@ -35,7 +35,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         devid_opts = {}
         host_opts = {"default": "Auto"}
         key_opts = {}
-        proto_opts = {"default": 3.3}
+        proto_opts = {"default": "auto"}
         polling_opts = {"default": False}
         devcid_opts = {}
 
