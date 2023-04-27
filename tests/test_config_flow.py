@@ -654,7 +654,7 @@ async def test_async_setup_entry_for_switch(mock_device, hass):
             CONF_LOCAL_KEY: "localkey",
             CONF_NAME: "test",
             CONF_POLL_ONLY: False,
-            CONF_PROTOCOL_VERSION: 3.3,
+            CONF_PROTOCOL_VERSION: "auto",
             CONF_TYPE: "smartplugv2",
         },
     )
