@@ -300,7 +300,7 @@ async def test_flow_user_init_invalid_config(mock_test, hass):
             CONF_DEVICE_ID: "deviceid",
             CONF_HOST: "hostname",
             CONF_LOCAL_KEY: "badkey",
-            CONF_PROTOCOL_VERSION: "auto",
+            CONF_PROTOCOL_VERSION: 3.3,
             CONF_POLL_ONLY: False,
         },
     )

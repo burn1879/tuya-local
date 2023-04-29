@@ -35,7 +35,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         devid_opts = {}
         host_opts = {"default": "Auto"}
         key_opts = {}
-        proto_opts = {"default": "auto"}
+        proto_opts = {"default": 3.3}
         polling_opts = {"default": False}
         devcid_opts = {}
 
@@ -67,7 +67,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(
                         CONF_PROTOCOL_VERSION,
                         **proto_opts,
-                    ): vol.In(["auto"] + API_PROTOCOL_VERSIONS),
+                    ): vol.In(API_PROTOCOL_VERSIONS),
                     vol.Required(CONF_POLL_ONLY, **polling_opts): bool,
                     vol.Optional(CONF_DEVICE_CID, **devcid_opts): str,
                 }
@@ -169,8 +169,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(CONF_HOST, default=config.get(CONF_HOST, "")): str,
             vol.Required(
                 CONF_PROTOCOL_VERSION,
-                default=config.get(CONF_PROTOCOL_VERSION, "auto"),
-            ): vol.In(["auto"] + API_PROTOCOL_VERSIONS),
+                default=config.get(CONF_PROTOCOL_VERSION, 3.3),
+            ): vol.In(API_PROTOCOL_VERSIONS),
             vol.Required(
                 CONF_POLL_ONLY, default=config.get(CONF_POLL_ONLY, False)
             ): bool,
