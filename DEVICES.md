@@ -16,7 +16,7 @@
 - Goldair heater models beginning with the code GPPH, GCPV, GECO
 - Heatstorm HS-6000-GC heavy duty heater
 - HJZ oil column radiator
-- INOW Wi-Fi heating element
+- INOW Wi-Fi heating element (single and dual air/water temperature control variants)
 - Kogan flame effect heater - KAWHMFP20BA model
 - Kogan tower heater - KASTHFP2KWA model
 - Kogan Wi-Fi convection panel heaters - KAHTP and KAWFHTP models
@@ -235,6 +235,7 @@ the best option.
 - Logicom Strippy 4 way power strip with USB
 - Loratap RR400W-V2 relay switch
 - Mirabella Genio smartplug with USB
+- Moes 3-gang switch
 - MoesHouse smartplug with RGBW nightlight
 - Qnect QN-WPO3 3 outlet + USB powerstrip with individual timers
 - Single switch with backlight (unbranded)
@@ -253,6 +254,7 @@ of device.
   _confirmed as working with Kogan KASPS10A3P3UA 3 socket + USB powerstrip
 - 4 way powerstrip with USB
   _confirmed as working with AOFO ZLD-44EU-W_
+- 4 way powerstrip with USB and restore power state config.
 - Generic smartplug with power monitoring (older models)
   _confirmed as working with Kogan, Blitzwolf and Gosund single smartplugs (smartplugv1)_
 - Generic smartplug with power monitoring (newer models)
@@ -267,6 +269,7 @@ of device.
   _confirmed working as a simple switch and timer with Kashimura KJ-173_
 - Generic double switch with timers (confirmed with Living dual switch and another v2 variant with Avatto dual switch)
 - Generic triple and quad switches (confirmed with Songam wall switches)
+- Generic triple switch with timers.
 - Simple switch - a switch only, can be a fallback for many other unsupported devices, to allow just power to be switched on/off.
 - Simple switch with timer - a single switch and timer, will probably work for a lot of smart switches that are not covered by the more advanced configs above.
 - Simple switch with timer v2 - the above with timer moved from dp 11 to 9, confirmed with a Nexxt 220V smart switch.
@@ -306,7 +309,7 @@ of device.
 - Kogan garage door with tilt sensor
 - Loonas smart curtain
 - LoraTap GDC100W garage door opener
-- LoraTap SC500W-V1 curtain switch
+- LoraTap SC500W-V1 curtain switch (supports many other simple curtain/blind controllers)
 - M027 curtain module (sold under several brands, including zemismart, meterk and others)
 - QS-WIFI-C01(BK) curtain module
 - SHerko curtain motor
