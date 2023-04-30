@@ -71,14 +71,10 @@ class TuyaLocalDevice(object):
                 self._api = tinytuya.Device(
                     dev_id,
                     cid=dev_cid,
-                    parent=tinytuya.Device(
-                        dev_id, address, local_key, version=protocol_version
-                    ),
+                    parent=tinytuya.Device(dev_id, address, local_key),
                 )
             else:
-                self._api = tinytuya.Device(
-                    dev_id, address, local_key, version=protocol_version
-                )
+                self._api = tinytuya.Device(dev_id, address, local_key)
             self.dev_cid = dev_cid
         except Exception as e:
             _LOGGER.error(
@@ -91,6 +87,9 @@ class TuyaLocalDevice(object):
 
         # we handle retries at a higher level so we can rotate protocol version
         self._api.set_socketRetryLimit(1)
+        if self._api.parent:
+            self._api.parent.set_socketRetryLimit(1)
+
         self._refresh_task = None
         self._protocol_configured = protocol_version
         self._poll_only = poll_only
@@ -121,7 +120,7 @@ class TuyaLocalDevice(object):
     @property
     def unique_id(self):
         """Return the unique id for this device (the dev_id or dev_cid)."""
-        return self.dev_cid if self.dev_cid is not None else self._api.id
+        return self.dev_cid or self._api.id
 
     @property
     def device_info(self):
@@ -247,6 +246,9 @@ class TuyaLocalDevice(object):
         dps_updated = False
 
         self._api.set_socketPersistent(persist)
+        if self._api.parent:
+            self._api.parent.set_socketPersistent(persist)
+
         while self._running:
             try:
                 last_cache = self._cached_state.get("updated_at", 0)
@@ -259,6 +261,8 @@ class TuyaLocalDevice(object):
                     # connection.
                     persist = not self.should_poll
                     self._api.set_socketPersistent(persist)
+                    if self._api.parent:
+                        self._api.parent.set_socketPersistent(persist)
 
                 if now - last_cache > self._CACHE_TIMEOUT:
                     if (
@@ -313,6 +317,8 @@ class TuyaLocalDevice(object):
                 self._running = False
                 # Close the persistent connection when exiting the loop
                 self._api.set_socketPersistent(False)
+                if self._api.parent:
+                    self._api.parent.set_socketPersistent(False)
                 raise
             except Exception as t:
                 _LOGGER.exception(
@@ -325,6 +331,8 @@ class TuyaLocalDevice(object):
 
         # Close the persistent connection when exiting the loop
         self._api.set_socketPersistent(False)
+        if self._api.parent:
+            self._api.parent.set_socketPersistent(False)
 
     async def async_possible_types(self):
         cached_state = self._get_cached_state()
@@ -575,6 +583,11 @@ class TuyaLocalDevice(object):
             self._api.set_version,
             new_version,
         )
+        if self._api.parent:
+            await self._hass.async_add_executor_job(
+                self._api.parent.set_version,
+                new_version,
+            )
 
     @staticmethod
     def get_key_for_value(obj, value, fallback=None):
@@ -594,7 +607,7 @@ def setup_device(hass: HomeAssistant, config: dict):
         config[CONF_HOST],
         config[CONF_LOCAL_KEY],
         config[CONF_PROTOCOL_VERSION],
-        config[CONF_DEVICE_CID] if CONF_DEVICE_CID in config else None,
+        config.get(CONF_DEVICE_CID),
         hass,
         config[CONF_POLL_ONLY],
     )
