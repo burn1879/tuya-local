@@ -71,10 +71,11 @@ KNOWN_DPS = {
         "optional": ["color_mode", "color_temp", "rgbhsv"],
     },
     "lock": {
-        "required": [
-            {"or": ["lock", {"and": ["request_unlock", "approve_unlock"]}]},
-        ],
+        "required": [],
         "optional": [
+            "lock",
+            {"and": ["request_unlock", "approve_unlock"]},
+            {"and": ["request_intercom", "approve_intercom"]},
             "unlock_fingerprint",
             "unlock_password",
             "unlock_temp_pwd",
@@ -82,7 +83,6 @@ KNOWN_DPS = {
             "unlock_card",
             "unlock_app",
             "unlock_key",
-            {"and": ["request_intercom", "approve_intercom"]},
             "jammed",
         ],
     },

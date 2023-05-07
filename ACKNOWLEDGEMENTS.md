@@ -252,3 +252,11 @@ Further device support has been made with the assistance of users.  Please consi
 - [pdw-mb](https://github.com/pdw-mb) for contributing support for inow heater element with dual air and water temperature control.
 - [ianalexander](https://github.com/ianalexander) for contributing support for Zemismart roller shade, which was merged into loratap curtain switch config.
 - [xZetsubou](https://github.com/xZetsubou) for contributing improvements for covers to better support Zemismart roller shades, triple switch with timers, and quad switch plus USB with restore power state config.
+- [burn1879](https://github.com/burn1879) for contributing support for subdevices, and Loratap zigbee curtains.
+- [hronek](https://github.com/hronek) for assisting with support for BLE PT216 temperature and humidity sensors.
+- [bparten](https://github.com/bparten) for assisting with support for Moes IR hub connected heatpump.
+- [spanzetta](https://github.com/spanzetta) for assisting with support for BLE connected HCT-611 water timer.
+- [MiloRoNu](https://github.com/MiloRoNu) for assisting with support for Neo IR Air Conditioner controller.
+- [jaydisc](https://github.com/jaydisc) for assisting with support for Orion DL021HA BLE locks.
+- [robertrebor](https://github.com/robertreor) for assisting with support for generic Illuminance sensors.
+- [aurelmarius](https://github.com/aurelmarius) for assisting with support for Ditua DT-1522-YN aroma diffuser.

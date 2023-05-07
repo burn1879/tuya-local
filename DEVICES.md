@@ -177,6 +177,7 @@
 ### Aroma diffusers
 
 - Asakuki aroma diffuser with light
+- Ditua DT-1522-YN aroma diffuser
 - Etersky aroma diffuser with light
 - YYM-805SW aroma diffuser with light (also supports GX Aroma diffuser)
 
@@ -350,6 +351,7 @@ of device.
 ### Miscellaneous
 
 - generic PIR motion sensor
+- generic illuminance sensor
 - Bresser smart 7-in-1 weather station
 - Catit Pixi smart fountain
 - Catit pet feeder (2.2kg dispenser and 6 meal versions)
@@ -370,3 +372,26 @@ of device.
 - Yieryi water quality monitor (also matches unbranded PH-W3988 device)
 - ZX-G30 alarm system (not as an alarm_control_panel, as individual inputs and sensors)
 - ZY-M100-WiFi mmWave human presence sensor
+
+### Devices supported via Bluetooth hubs
+
+- PT216/PT19DB-2 temperature and humidity sensor
+- HCT-611 water timer
+- Orion DL021HA lock
+
+### Devices supported via IR hubs
+
+- Air conditioner / heatpump via Moes IR hub
+- Neo IR Air Conditioner controller
+
+### Devices supported via Zigbee hubs
+
+- LoraTap SC500ZB-V2 curtain controller
+
+
+NOTE: this project does not intend to expand the scope to support non-Tuya
+devices via Tuya hubs.  Though it may be techincally feasible to do such a
+thing, it expands the support requirements beyond the capacity of the
+volunteer manpower of this project.  The community would be better served by
+making Tuya devices work with the standard BLE and Zigbee support in
+Home Assistant rather than the other way around.
