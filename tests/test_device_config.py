@@ -306,10 +306,21 @@ class TestDeviceConfig(IsolatedAsyncioTestCase):
             )
             self.check_entity(parsed.primary_entity, cfg)
             entities.append(parsed.primary_entity.config_id)
+            secondary = False
             for entity in parsed.secondary_entities():
+                secondary = True
                 self.check_entity(entity, cfg)
                 entities.append(entity.config_id)
+            # check entities are unique
             self.assertCountEqual(entities, set(entities))
+
+            # If there are no secondary entities, check that it is intended
+            if not secondary:
+                for key in parsed._config.keys():
+                    self.assertFalse(
+                        key.startswith("sec"),
+                        f"misspelled secondary_entities in {cfg}",
+                    )
 
     # Most of the device_config functionality is exercised during testing of
     # the various supported devices.  These tests concentrate only on the gaps.
@@ -336,14 +347,14 @@ class TestDeviceConfig(IsolatedAsyncioTestCase):
         with self.assertRaises(TypeError):
             await error_code.async_set_value(mock_device, 1)
 
-    def test_dps_values_returns_none_with_no_mapping(self):
+    def test_dps_values_is_empty_with_no_mapping(self):
         """
         Test that a dps with no mapping returns None as its possible values
         """
         mock_device = MagicMock()
         cfg = get_config("goldair_gpph_heater")
         temp = cfg.primary_entity.find_dps("current_temperature")
-        self.assertIsNone(temp.values(mock_device))
+        self.assertEqual(temp.values(mock_device), [])
 
     def test_config_returned(self):
         """Test that config file is returned by config"""

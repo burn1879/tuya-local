@@ -33,6 +33,7 @@
 - Carson CB PA280
 - Cooper&Hunter Nordic Evo Ng
 - Daizuki heat pump
+- Duux Blizzard portable air conditioner
 - Eberg Cooly C35HD
 - Eberg Qubo Q40HD
 - ElectriQ 12WMINV
@@ -87,6 +88,7 @@
 - Inkbird ITC306A thermostat smartplug
 - Inkbird ITC308 thermostat smartplug
 - Jiahong ET-72W thermostat
+- Ledlux thermostat
 - ME80 touchscreen thermostat
 - Minco MH-1823D thermostat
 - Moes BHT-002 thermostat (without external temp sensor)
@@ -108,6 +110,7 @@
 - Arlec 19 speed wall fan
 - Arlec 6 speed floor fan
 - Aspen ASP 200 fan
+- Atomi 52 inch ceiling fan
 - Chanfok ceiling fan with cool/warm white dimmable light
 - Deta fan controller
 - Fanco Eco Silent Deluxe ceiling fan with LED light
@@ -115,6 +118,7 @@
 - Ledkia fan and light controller
 - Lexy F501 fan
 - Skyfan DC fan
+- Skyfan DC fan with light
 - Stirling FS1-40DC pedestal fan
 - TMWF02 fan controller
 - Treatlife DS02-F fan switch
@@ -152,6 +156,7 @@
 - Eeese Adam dehumidifier
 - Eeese Carl dehumidifier
 - Eeese Otto dehumidifier
+- Goldair GPDH340 dehumidifier
 - Goldair GPDH420 dehumidifier
 - Honeywell TP(30/50/70) dehumidifiers
 - Hyundai Sahara dehumidifier
@@ -161,7 +166,7 @@
 - JJPro JPD02 dehumidifier
 - Klarstein DryFy Pro Connect dehumidifier
 - Kogan SmarterHome 7L desiccant dehumidifier
-- Shinco 30D dehumidifier
+- Shinco 30D dehumidifier (also matches Klarstein DryFy Connect)
 
 ### Humidifiers
 
@@ -193,6 +198,7 @@
 
 ### Smart Meter/Circuit Breaker
 
+- CBI Astute smart controller breaker switch
 - Compteur digital electric (single phase)
 - eMylo EAI-90 smart meter
 - PC321-TY 3 phase power clamp meter
@@ -201,7 +207,9 @@
 - SmartMCB SMT006 energy meter
 - Taxnele circuit breaker and energy meter
 - TOMPD-63LW energy meter circuit breaker
+- WDYK 2P63A energy meter
 - WDYK 3 phase 4 pole 400V energy meter circuit breaker
+
 
 ### Battery Charger
 
@@ -282,6 +290,7 @@ of device.
 
 - Generic dimmable light (2 types, using dp 1,2 and 20,22)
 - Generic RGBCW/RGBWW lightbulb (confirmed with Lijun branded bulb, expected to match others also). Three versions - standard dps layout starting from 20, with and without scene/music modes and timer, and a non-standard layout starting from 1 but following the same pattern (tested with "A60" bulbs).
+- Generic RGBW lightbulb in the non-standard pattern above but without color temperature control.
 - Generic dimmable/color temperature adjustable desktop lamp (confirmed with Setti+ SL601)
 - Atomi smart color string light
 - Deta/Arlec motion sensor lights (DET100HA/DET102HA/MAL315HA)
@@ -322,9 +331,10 @@ of device.
 
 - Kabum Smart 500 vacuum cleaner
 - Kyvol E30 vacuum cleaner
+- Lefant LS1 Pro vacuum cleaner
 - Lefant M213 vacuum cleaner (also works for Lefant M213S and APOSEN A550)
 - Lenovo E1 vacuum cleaner
-- Mellerware City Move vacuum cleaner (high likelihood of mismatch)
+- Mellerware City Move vacuum cleaner
 - Rinkmo D2 vacuum cleaner
 
 ### Lawnmowers

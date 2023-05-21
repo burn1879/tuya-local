@@ -6,7 +6,8 @@ from homeassistant.components.light import (
     ATTR_COLOR_MODE,
     ATTR_COLOR_TEMP,
     ATTR_EFFECT,
-    ATTR_RGBW_COLOR,
+    ATTR_HS_COLOR,
+    ATTR_WHITE,
     ColorMode,
     LightEntity,
     LightEntityFeature,
@@ -88,7 +89,7 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
             return from_dp
 
         if self._rgbhsv_dps:
-            return ColorMode.RGBW
+            return ColorMode.HS
         elif self._color_temp_dps:
             return ColorMode.COLOR_TEMP
         elif self._brightness_dps:
@@ -133,32 +134,29 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
     @property
     def brightness(self):
         """Get the current brightness of the light"""
+        if self.raw_color_mode == ColorMode.HS and self._rgbhsv_dps:
+            return self._hsv_brightness
+        return self._white_brightness
+
+    @property
+    def _white_brightness(self):
         if self._brightness_dps:
             return self._brightness_dps.get_value(self._device)
 
     @property
-    def rgbw_color(self):
-        """Get the current RGBW color of the light"""
+    def _unpacked_rgbhsv(self):
+        """Get the unpacked rgbhsv data"""
         if self._rgbhsv_dps:
-            # color data in hex format RRGGBBHHHHSSVV (14 digit hex)
-            # can also be base64 encoded.
-            # Either RGB or HSV can be used.
             color = self._rgbhsv_dps.decoded_value(self._device)
-
             fmt = self._rgbhsv_dps.format
             if fmt and color:
                 vals = unpack(fmt.get("format"), color)
-                rgbhsv = {}
                 idx = 0
+                rgbhsv = {}
                 for v in vals:
-                    # Range in HA is 0-100 for s, 0-255 for rgb and v, 0-360
-                    # for h
+                    # Range in HA is 0-100 for s, 0-255 for rgb and v, 0-360 for h
                     n = fmt["names"][idx]
                     r = fmt["ranges"][idx]
-                    if r["min"] != 0:
-                        raise AttributeError(
-                            f"Unhandled minimum range for {n} in RGBW value"
-                        )
                     mx = r["max"]
                     scale = 1
                     if n == "h":
@@ -171,18 +169,29 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
                     rgbhsv[n] = round(scale * v)
                     idx += 1
 
-                if "h" in rgbhsv and "s" in rgbhsv and "v" in rgbhsv:
-                    h = rgbhsv["h"]
-                    s = rgbhsv["s"]
-                    # convert RGB from H and S to seperate out the V component
-                    r, g, b = color_util.color_hs_to_RGB(h, s)
-                    w = rgbhsv["v"]
-                else:
-                    r = rgbhsv.get("r")
-                    g = rgbhsv.get("g")
-                    b = rgbhsv.get("b")
-                    w = self.brightness
-                return (r, g, b, w)
+                return rgbhsv
+
+    @property
+    def _hsv_brightness(self):
+        """Get the colour mode brightness from the light"""
+        rgbhsv = self._unpacked_rgbhsv
+        if rgbhsv:
+            return rgbhsv.get("v", self._white_brightness)
+        return self._white_brightness
+
+    @property
+    def hs_color(self):
+        """Get the current hs color of the light"""
+        rgbhsv = self._unpacked_rgbhsv
+        if rgbhsv:
+            if "h" in rgbhsv and "s" in rgbhsv:
+                hs = (rgbhsv["h"], rgbhsv["s"])
+            else:
+                r = rgbhsv.get("r")
+                g = rgbhsv.get("g")
+                b = rgbhsv.get("b")
+                hs = color_util.color_rgb_to_hs(r, g, b)
+            return hs
 
     @property
     def effect_list(self):
@@ -210,7 +219,20 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
         settings = {}
         color_mode = None
 
-        if self._color_temp_dps and ATTR_COLOR_TEMP in params:
+        if self._color_mode_dps and ATTR_WHITE in params:
+            if self.color_mode != ColorMode.WHITE:
+                color_mode = ColorMode.WHITE
+            if ATTR_BRIGHTNESS not in params and self._brightness_dps:
+                bright = params.get(ATTR_WHITE)
+                _LOGGER.debug(f"Setting brightness via WHITE parameter to {bright}")
+                settings = {
+                    **settings,
+                    **self._brightness_dps.get_values_to_set(
+                        self._device,
+                        bright,
+                    ),
+                }
+        elif self._color_temp_dps and ATTR_COLOR_TEMP in params:
             if self.color_mode != ColorMode.COLOR_TEMP:
                 color_mode = ColorMode.COLOR_TEMP
 
@@ -228,18 +250,17 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
                 **self._color_temp_dps.get_values_to_set(self._device, color_temp),
             }
         elif self._rgbhsv_dps and (
-            ATTR_RGBW_COLOR in params
-            or (ATTR_BRIGHTNESS in params and self.raw_color_mode == ColorMode.RGBW)
+            ATTR_HS_COLOR in params
+            or (ATTR_BRIGHTNESS in params and self.raw_color_mode == ColorMode.HS)
         ):
-            if self.raw_color_mode != ColorMode.RGBW:
-                color_mode = ColorMode.RGBW
+            if self.raw_color_mode != ColorMode.HS:
+                color_mode = ColorMode.HS
 
-            rgbw = params.get(ATTR_RGBW_COLOR, self.rgbw_color or (0, 0, 0, 0))
+            hs = params.get(ATTR_HS_COLOR, self.hs_color or (0, 0))
             brightness = params.get(ATTR_BRIGHTNESS, self.brightness or 255)
             fmt = self._rgbhsv_dps.format
-            if rgbw and fmt:
-                rgb = (rgbw[0], rgbw[1], rgbw[2])
-                hs = color_util.color_RGB_to_hs(rgbw[0], rgbw[1], rgbw[2])
+            if hs and fmt:
+                rgb = color_util.color_hsv_to_RGB(*hs, brightness / 2.55)
                 rgbhsv = {
                     "r": rgb[0],
                     "g": rgb[1],
@@ -249,7 +270,7 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
                     "v": brightness,
                 }
                 _LOGGER.debug(
-                    f"Setting RGBW as {rgb[0]},{rgb[1]},{rgb[2]},{hs[0]},{hs[1]},{brightness}"
+                    f"Setting color as {rgb[0]},{rgb[1]},{rgb[2]},{hs[0]},{hs[1]},{brightness}"
                 )
                 ordered = []
                 idx = 0
@@ -262,7 +283,16 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
                         scale = r["max"] / 360
                     else:
                         scale = r["max"] / 255
-                    ordered.append(round(rgbhsv[n] * scale))
+                    val = round(rgbhsv[n] * scale)
+                    if val < r["min"]:
+                        _LOGGER.warning(
+                            "Color data %s=%d constrained to be above %d",
+                            n,
+                            val,
+                            r["min"],
+                        )
+                        val = r["min"]
+                    ordered.append(val)
                     idx += 1
                 binary = pack(fmt["format"], *ordered)
                 settings = {
@@ -293,7 +323,7 @@ class TuyaLocalLight(TuyaLocalEntity, LightEntity):
 
         if (
             ATTR_BRIGHTNESS in params
-            and self.raw_color_mode != ColorMode.RGBW
+            and self.raw_color_mode != ColorMode.HS
             and self._brightness_dps
         ):
             bright = params.get(ATTR_BRIGHTNESS)

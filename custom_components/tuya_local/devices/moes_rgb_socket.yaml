@@ -20,7 +20,7 @@ secondary_entities:
           - dps_val: white
             value: white
           - dps_val: colour
-            value: rgbw
+            value: hs
           - dps_val: scene
             value: Scene
           - dps_val: scene_1
@@ -82,6 +82,7 @@ secondary_entities:
       - id: 102
         type: integer
         name: value
+        optional: true
         unit: min
         range:
           min: 0
