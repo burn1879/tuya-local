@@ -192,7 +192,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ): bool,
             vol.Required(
                 CONF_IS_GATEWAY, default=config.get(CONF_IS_GATEWAY, False)
-             ): bool,
+            ): bool,
             vol.Required(
                 CONF_PARENT_GATEWAY, default=config.get(CONF_PARENT_GATEWAY, "None")
             ): str,

@@ -810,13 +810,13 @@ class TuyaGatewayDevice(object):
 
                 if poll:
                     if isinstance(poll, tuple):
-                        _LOGGER.warning(
-                            "%s error reading: %s", self.name, str(poll)
-                        )
+                        _LOGGER.warning("%s error reading: %s", self.name, str(poll))
                         poll = poll[1]
 
                     if "Error" in poll:
-                        _LOGGER.warning("%s error reading: %s", self.name, poll["Error"])
+                        _LOGGER.warning(
+                            "%s error reading: %s", self.name, poll["Error"]
+                        )
                         if "Payload" in poll and poll["Payload"]:
                             _LOGGER.info(
                                 "%s err payload: %s",
