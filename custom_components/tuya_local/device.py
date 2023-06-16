@@ -700,7 +700,6 @@ class TuyaGatewayDevice(object):
         """Return True if the device has returned some state."""
         return False
 
-
     def actually_start(self, event=None):
         _LOGGER.debug("Starting monitor loop for %s", self.name)
         self._running = True
@@ -734,20 +733,7 @@ class TuyaGatewayDevice(object):
         _LOGGER.debug("Monitor loop for %s stopped", self.name)
         self._refresh_task = None
 
-    # def can_send_request (self, childid, request):
-    #     returnval = False
-    #     try:
-    #         self._lock.acquire()
-    #         child_task = len(self._children_request)
-    #         if child_task == 0:
-    #             self.
-    #             return True
-    #
-    #     finally:
-    #         self._lock.release()
-    #     return child_task == 0
-
-    def get_device (self):
+    def get_device(self):
         return self._api
 
     async def receive_loop(self):
@@ -772,10 +758,10 @@ class TuyaGatewayDevice(object):
                         if device_cid is None:
                             raise KeyError
                         device_data = self._hass.data[DOMAIN][device_cid]
-                        device = device_data.get ("device")
+                        device = device_data.get("device")
                         if isinstance(device, TuyaSubDevice):
                             if "dps" in poll:
-                                await device.update_data (poll.pop("dps", []))
+                                await device.update_data(poll.pop("dps", []))
                     except KeyError as ex:
                         _LOGGER.debug("%s device not found", log_json(poll))
                 else:
@@ -821,7 +807,6 @@ class TuyaGatewayDevice(object):
                     lambda: self._api.receive(),
                     f"Failed to fetch device datas for {self.name}",
                 )
-                _LOGGER.warning("%s reading: %s", self.name, str(poll))
 
                 if poll:
                     if isinstance(poll, tuple):
@@ -831,9 +816,7 @@ class TuyaGatewayDevice(object):
                         poll = poll[1]
 
                     if "Error" in poll:
-                        _LOGGER.warning(
-                            "%s error reading: %s", self.name, poll["Error"]
-                        )
+                        _LOGGER.warning("%s error reading: %s", self.name, poll["Error"])
                         if "Payload" in poll and poll["Payload"]:
                             _LOGGER.info(
                                 "%s err payload: %s",
@@ -862,7 +845,6 @@ class TuyaGatewayDevice(object):
 
         # Close the persistent connection when exiting the loop
         self._api.set_socketPersistent(False)
-
 
     async def _retry_on_failed_connection(self, func, error_message):
         if self._api_protocol_version_index is None:
@@ -906,7 +888,6 @@ class TuyaGatewayDevice(object):
                 if not self._api_protocol_working:
                     await self._rotate_api_protocol_version()
 
-
     async def _rotate_api_protocol_version(self):
         if self._api_protocol_version_index is None:
             try:
@@ -934,7 +915,6 @@ class TuyaGatewayDevice(object):
             new_version,
         )
 
-
     @staticmethod
     def get_key_for_value(obj, value, fallback=None):
         keys = list(obj.keys())
@@ -944,18 +924,12 @@ class TuyaGatewayDevice(object):
     def is_busy(self):
         return self._is_busy
 
-    def set_busy (self, val):
+    def set_busy(self, val):
         self._is_busy = val
 
 
 class TuyaSubDevice(object):
-    def __init__(
-        self,
-        name,
-        dev_id,
-        parent,
-        hass: HomeAssistant
-    ):
+    def __init__(self, name, dev_id, parent, hass: HomeAssistant):
         """
         Represents a Tuya-based device.
 
@@ -1032,7 +1006,7 @@ class TuyaSubDevice(object):
             "identifiers": {(DOMAIN, self.unique_id)},
             "name": self.name,
             "manufacturer": "Tuya",
-            "via_device":(DOMAIN, self._api.parent.id),
+            "via_device": (DOMAIN, self._api.parent.id),
         }
 
     @property
@@ -1047,7 +1021,6 @@ class TuyaSubDevice(object):
             EVENT_HOMEASSISTANT_STOP, self.async_stop
         )
         self._hass.async_create_task(self.async_refresh())
-
 
     def start(self):
         if self._hass.is_stopping:
@@ -1098,7 +1071,6 @@ class TuyaSubDevice(object):
         if not self._children:
             await self.async_stop()
 
-
     async def update_data(self, poll):
         """Coroutine wrapper for async_receive from gateway."""
         if type(poll) is dict:
@@ -1124,17 +1096,15 @@ class TuyaSubDevice(object):
                 log_json(poll),
             )
 
-
     @property
     def should_poll(self):
-        return self._poll_only or self._temporary_poll or not self.has_returned_state
+        return self._temporary_poll or not self.has_returned_state
 
     def pause(self):
         self._temporary_poll = True
 
     def resume(self):
         self._temporary_poll = False
-
 
     async def async_possible_types(self):
         cached_state = self._get_cached_state()
@@ -1188,7 +1158,6 @@ class TuyaSubDevice(object):
             f"Failed to refresh device state for {self.name}.",
         )
         self._parent.set_busy(False)
-
 
     def get_property(self, dps_id):
         cached_state = self._get_cached_state()
@@ -1409,6 +1378,7 @@ class TuyaSubDevice(object):
         keys = list(obj.keys())
         values = list(obj.values())
         return keys[values.index(value)] if value in values else fallback
+
 
 def setup_device(hass: HomeAssistant, config: dict):
     """Setup a tuya device based on passed in config."""

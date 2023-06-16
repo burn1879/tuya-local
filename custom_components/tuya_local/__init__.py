@@ -233,14 +233,14 @@ async def async_migrate_entry(hass, entry: ConfigEntry):
         conf = entry.data | entry.options
         if conf.get(CONF_DEVICE_CID) is not None:
             entry.data = {
-                CONF_DEVICE_ID: get_device_id (conf),
+                CONF_DEVICE_ID: get_device_id(conf),
                 CONF_LOCAL_KEY: conf[CONF_LOCAL_KEY],
                 CONF_HOST: conf[CONF_HOST],
                 CONF_TYPE: conf[CONF_TYPE],
                 CONF_PROTOCOL_VERSION: conf[CONF_PROTOCOL_VERSION],
                 CONF_POLL_ONLY: conf[CONF_POLL_ONLY],
                 CONF_PARENT_GATEWAY: conf[CONF_DEVICE_ID],
-                CONF_IS_GATEWAY: conf.get(CONF_IS_GATEWAY, False)
+                CONF_IS_GATEWAY: conf.get(CONF_IS_GATEWAY, False),
             }
             entry.options = {}
         entry.version = 13
@@ -258,7 +258,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     try:
         setup_device(hass, config)
     except KeyError as ex:
-        raise ConfigEntryNotReady(f"Gateway not ready when setup {get_device_id(config)}") from ex
+        raise ConfigEntryNotReady(
+            f"Gateway not ready when setup {get_device_id(config)}"
+        ) from ex
 
     if not config.get(CONF_IS_GATEWAY):
         device_conf = get_config(entry.data[CONF_TYPE])

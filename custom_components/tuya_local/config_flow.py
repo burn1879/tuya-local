@@ -78,10 +78,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     ): vol.In(["auto"] + API_PROTOCOL_VERSIONS),
                     vol.Required(CONF_POLL_ONLY, **polling_opts): bool,
                     vol.Required(CONF_IS_GATEWAY, **gateway_opts): bool,
-                    vol.Required(
-                        CONF_PARENT_GATEWAY,
-                        **parent_gateway_opts
-                    ): vol.In(["None"] + async_config_entry_gateway(self.hass)),
+                    vol.Required(CONF_PARENT_GATEWAY, **parent_gateway_opts): vol.In(
+                        ["None"] + async_config_entry_gateway(self.hass)
+                    ),
                 }
             ),
             errors=errors,
@@ -195,8 +194,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 CONF_IS_GATEWAY, default=config.get(CONF_IS_GATEWAY, False)
              ): bool,
             vol.Required(
-                CONF_PARENT_GATEWAY,
-                default=config.get(CONF_PARENT_GATEWAY, "None")
+                CONF_PARENT_GATEWAY, default=config.get(CONF_PARENT_GATEWAY, "None")
             ): str,
         }
         cfg = get_config(config[CONF_TYPE])
@@ -220,12 +218,12 @@ async def async_test_connection(config: dict, hass: HomeAssistant):
     try:
         parent_gateway = config.get(CONF_PARENT_GATEWAY)
         if parent_gateway != "None":
-            parent_device = domain_data.get (parent_gateway)
+            parent_device = domain_data.get(parent_gateway)
             device = TuyaSubDevice(
                 "Test SubDevice",
                 config.get(CONF_DEVICE_ID),
                 parent_device.get("device"),
-                hass
+                hass,
             )
         else:
             device = TuyaLocalDevice(

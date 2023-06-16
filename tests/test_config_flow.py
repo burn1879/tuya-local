@@ -14,7 +14,8 @@ from custom_components.tuya_local import (
 )
 from custom_components.tuya_local.const import (
     CONF_DEVICE_ID,
-    CONF_DEVICE_CID,
+    CONF_IS_GATEWAY,
+    CONF_PARENT_GATEWAY,
     CONF_LOCAL_KEY,
     CONF_POLL_ONLY,
     CONF_PROTOCOL_VERSION,
@@ -51,7 +52,7 @@ async def test_init_entry(hass):
     """Test initialisation of the config flow."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        version=11,
+        version=13,
         title="test",
         data={
             CONF_DEVICE_ID: "deviceid",
@@ -60,7 +61,8 @@ async def test_init_entry(hass):
             CONF_POLL_ONLY: False,
             CONF_PROTOCOL_VERSION: "auto",
             CONF_TYPE: "kogan_kahtp_heater",
-            CONF_DEVICE_CID: None,
+            CONF_IS_GATEWAY: False,
+            CONF_PARENT_GATEWAY: "None",
         },
         options={},
     )

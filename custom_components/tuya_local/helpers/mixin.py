@@ -29,7 +29,7 @@ def async_config_entry_by_device_id(hass, device_id):
 def async_config_entry_gateway(hass):
     """Look up gateway config entry."""
     current_entries = hass.config_entries.async_entries(DOMAIN)
-    entries = set ()
+    entries = set()
     for entry in current_entries:
         if CONF_IS_GATEWAY in entry.data and entry.data[CONF_IS_GATEWAY]:
             entries.add(entry.data[CONF_DEVICE_ID])
