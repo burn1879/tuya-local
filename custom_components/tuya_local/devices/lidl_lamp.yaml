@@ -1,0 +1,44 @@
+name: Lidl Lamp
+products:
+  - id: 49qchf10
+    name: Lidl CW A60 Sunpu
+primary_entity:
+  entity: light
+  dps:
+    - id: 1
+      type: boolean
+      name: switch
+    - id: 3
+      name: brightness
+      type: integer
+      optional: true
+      range:
+        min: 10
+        max: 1000
+      mapping:
+        - scale: 3.92
+          step: 1
+    - id: 4
+      name: color_temp
+      type: integer
+      optional: true
+      range:
+        min: 0
+        max: 1000
+secondary_entities:
+  - entity: select
+    name: work_mode
+    category: config
+    dps:
+      - id: 2
+        name: option
+        type: string
+        mapping:
+          - dps_val: colour
+            value: "Colour"
+          - dps_val: music
+            value: "Music"
+          - dps_val: scene
+            value: "Scene"
+          - dps_val: white
+            value: "White"

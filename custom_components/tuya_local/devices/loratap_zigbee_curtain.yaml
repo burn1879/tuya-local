@@ -30,6 +30,7 @@ primary_entity:
       name: light_mode
       type: string
       hidden: true
+      optionnal: true
 secondary_entities:
   - entity: switch
     category: config

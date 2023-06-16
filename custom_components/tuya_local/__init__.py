@@ -11,14 +11,18 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.entity_registry import async_migrate_entries
 from homeassistant.util import slugify
 
 from .const import (
     CONF_DEVICE_ID,
+    CONF_DEVICE_CID,
     CONF_LOCAL_KEY,
     CONF_POLL_ONLY,
+    CONF_IS_GATEWAY,
     CONF_PROTOCOL_VERSION,
+    CONF_PARENT_GATEWAY,
     CONF_TYPE,
     DOMAIN,
 )
@@ -224,6 +228,23 @@ async def async_migrate_entry(hass, entry: ConfigEntry):
         await async_migrate_entries(hass, entry.entry_id, update_unique_id12)
         entry.version = 12
 
+    if entry.version <= 12:
+        # Migrate device cids of existing entities to parent id
+        conf = entry.data | entry.options
+        if conf.get(CONF_DEVICE_CID) is not None:
+            entry.data = {
+                CONF_DEVICE_ID: get_device_id (conf),
+                CONF_LOCAL_KEY: conf[CONF_LOCAL_KEY],
+                CONF_HOST: conf[CONF_HOST],
+                CONF_TYPE: conf[CONF_TYPE],
+                CONF_PROTOCOL_VERSION: conf[CONF_PROTOCOL_VERSION],
+                CONF_POLL_ONLY: conf[CONF_POLL_ONLY],
+                CONF_PARENT_GATEWAY: conf[CONF_DEVICE_ID],
+                CONF_IS_GATEWAY: conf.get(CONF_IS_GATEWAY, False)
+            }
+            entry.options = {}
+        entry.version = 13
+
     return True
 
 
@@ -233,21 +254,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         get_device_id(entry.data),
     )
     config = {**entry.data, **entry.options, "name": entry.title}
-    setup_device(hass, config)
-    device_conf = get_config(entry.data[CONF_TYPE])
-    if device_conf is None:
-        _LOGGER.error(NOT_FOUND, config[CONF_TYPE])
-        return False
 
-    entities = set()
-    e = device_conf.primary_entity
-    entities.add(e.entity)
-    for e in device_conf.secondary_entities():
+    try:
+        setup_device(hass, config)
+    except KeyError as ex:
+        raise ConfigEntryNotReady(f"Gateway not ready when setup {get_device_id(config)}") from ex
+
+    if not config.get(CONF_IS_GATEWAY):
+        device_conf = get_config(entry.data[CONF_TYPE])
+        if device_conf is None:
+            _LOGGER.error(NOT_FOUND, config[CONF_TYPE])
+            return False
+
+        entities = set()
+
+        e = device_conf.primary_entity
         entities.add(e.entity)
-
-    await hass.config_entries.async_forward_entry_setups(entry, entities)
-
-    entry.add_update_listener(async_update_entry)
+        for e in device_conf.secondary_entities():
+            entities.add(e.entity)
+        await hass.config_entries.async_forward_entry_setups(entry, entities)
+        entry.add_update_listener(async_update_entry)
 
     return True
 
@@ -256,21 +282,23 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     _LOGGER.debug("Unloading entry for device: %s", get_device_id(entry.data))
     config = entry.data
     data = hass.data[DOMAIN][get_device_id(config)]
-    device_conf = get_config(config[CONF_TYPE])
-    if device_conf is None:
-        _LOGGER.error(NOT_FOUND, config[CONF_TYPE])
-        return False
 
-    entities = {}
-    e = device_conf.primary_entity
-    if e.config_id in data:
-        entities[e.entity] = True
-    for e in device_conf.secondary_entities():
+    if not config.get(CONF_IS_GATEWAY):
+        device_conf = get_config(config[CONF_TYPE])
+        if device_conf is None:
+            _LOGGER.error(NOT_FOUND, config[CONF_TYPE])
+            return False
+
+        entities = {}
+        e = device_conf.primary_entity
         if e.config_id in data:
             entities[e.entity] = True
+        for e in device_conf.secondary_entities():
+            if e.config_id in data:
+                entities[e.entity] = True
 
-    for e in entities:
-        await hass.config_entries.async_forward_entry_unload(entry, e)
+        for e in entities:
+            await hass.config_entries.async_forward_entry_unload(entry, e)
 
     await async_delete_device(hass, config)
     del hass.data[DOMAIN][get_device_id(config)]

@@ -7,25 +7,27 @@ from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.core import HomeAssistant, callback
 
 from . import DOMAIN
-from .device import TuyaLocalDevice
+from .device import TuyaLocalDevice, TuyaSubDevice, TuyaGatewayDevice, setup_device
 from .const import (
     API_PROTOCOL_VERSIONS,
     CONF_DEVICE_ID,
     CONF_LOCAL_KEY,
     CONF_POLL_ONLY,
-    CONF_DEVICE_CID,
+    CONF_IS_GATEWAY,
+    CONF_PARENT_GATEWAY,
     CONF_PROTOCOL_VERSION,
     CONF_TYPE,
 )
 from .helpers.config import get_device_id
 from .helpers.device_config import get_config
 from .helpers.log import log_json
+from .helpers.mixin import async_config_entry_gateway, async_config_entry_by_device_id
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    VERSION = 12
+    VERSION = 13
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
     device = None
     data = {}
@@ -35,13 +37,19 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         devid_opts = {}
         host_opts = {"default": "Auto"}
         key_opts = {}
-        proto_opts = {"default": 3.3}
+        proto_opts = {"default": "auto"}
         polling_opts = {"default": False}
-        devcid_opts = {}
+        gateway_opts = {"default": False}
+        parent_gateway_opts = {}
 
         if user_input is not None:
             await self.async_set_unique_id(get_device_id(user_input))
             self._abort_if_unique_id_configured()
+
+            if user_input.get(CONF_IS_GATEWAY):
+                self.data = user_input
+                self.data[CONF_TYPE] = "gateway"
+                return await self.async_step_choose_entities()
 
             self.device = await async_test_connection(user_input, self.hass)
             if self.device:
@@ -52,10 +60,10 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 devid_opts["default"] = user_input[CONF_DEVICE_ID]
                 host_opts["default"] = user_input[CONF_HOST]
                 key_opts["default"] = user_input[CONF_LOCAL_KEY]
-                if CONF_DEVICE_CID in user_input:
-                    devcid_opts["default"] = user_input[CONF_DEVICE_CID]
+                parent_gateway_opts["default"] = user_input[CONF_PARENT_GATEWAY]
                 proto_opts["default"] = user_input[CONF_PROTOCOL_VERSION]
                 polling_opts["default"] = user_input[CONF_POLL_ONLY]
+                gateway_opts["default"] = user_input[CONF_IS_GATEWAY]
 
         return self.async_show_form(
             step_id="user",
@@ -69,7 +77,11 @@ class ConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         **proto_opts,
                     ): vol.In(["auto"] + API_PROTOCOL_VERSIONS),
                     vol.Required(CONF_POLL_ONLY, **polling_opts): bool,
-                    vol.Optional(CONF_DEVICE_CID, **devcid_opts): str,
+                    vol.Required(CONF_IS_GATEWAY, **gateway_opts): bool,
+                    vol.Required(
+                        CONF_PARENT_GATEWAY,
+                        **parent_gateway_opts
+                    ): vol.In(["None"] + async_config_entry_gateway(self.hass)),
                 }
             ),
             errors=errors,
@@ -155,6 +167,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             config = {**config, **user_input}
+
+            if user_input.get(CONF_IS_GATEWAY):
+                user_input[CONF_TYPE] = "gateway"
+                return self.async_create_entry(title="", data=user_input)
+
             device = await async_test_connection(config, self.hass)
             if device:
                 return self.async_create_entry(title="", data=user_input)
@@ -174,9 +191,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(
                 CONF_POLL_ONLY, default=config.get(CONF_POLL_ONLY, False)
             ): bool,
-            vol.Optional(
-                CONF_DEVICE_CID,
-                default=config.get(CONF_DEVICE_CID, ""),
+            vol.Required(
+                CONF_IS_GATEWAY, default=config.get(CONF_IS_GATEWAY, False)
+             ): bool,
+            vol.Required(
+                CONF_PARENT_GATEWAY,
+                default=config.get(CONF_PARENT_GATEWAY, "None")
             ): str,
         }
         cfg = get_config(config[CONF_TYPE])
@@ -198,17 +218,26 @@ async def async_test_connection(config: dict, hass: HomeAssistant):
         await asyncio.sleep(5)
 
     try:
-        subdevice_id = config.get(CONF_DEVICE_CID)
-        device = TuyaLocalDevice(
-            "Test",
-            config[CONF_DEVICE_ID],
-            config[CONF_HOST],
-            config[CONF_LOCAL_KEY],
-            config[CONF_PROTOCOL_VERSION],
-            subdevice_id,
-            hass,
-            True,
-        )
+        parent_gateway = config.get(CONF_PARENT_GATEWAY)
+        if parent_gateway != "None":
+            parent_device = domain_data.get (parent_gateway)
+            device = TuyaSubDevice(
+                "Test SubDevice",
+                config.get(CONF_DEVICE_ID),
+                parent_device.get("device"),
+                hass
+            )
+        else:
+            device = TuyaLocalDevice(
+                "Test",
+                config[CONF_DEVICE_ID],
+                config[CONF_HOST],
+                config[CONF_LOCAL_KEY],
+                config[CONF_PROTOCOL_VERSION],
+                "",
+                hass,
+                True,
+            )
         await device.async_refresh()
         retval = device if device.has_returned_state else None
     except Exception as e:

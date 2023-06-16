@@ -130,6 +130,16 @@ class TuyaLocalCover(TuyaLocalEntity, CoverEntity):
                     # probably the curtain is as set, somewhere in the middle
                     # so none of opened, closed, opening or closing
                     return None
+        if self._position_dp:
+            pos = self._position_dp.get_value(self._device)
+            # we have only pos dp, but it isn't telling us where the
+            # curtain is... we can't tell the state.
+            if pos is None:
+                return None
+            if pos < 5:
+                return "closed"
+            elif pos > 95:
+                return "opened"
         if self._control_dp:
             cmd = self._control_dp.get_value(self._device)
             pos = self.current_cover_position

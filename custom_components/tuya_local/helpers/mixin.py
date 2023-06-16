@@ -7,9 +7,34 @@ from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     UnitOfTemperature,
 )
+from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 
+from custom_components.tuya_local import DOMAIN, CONF_DEVICE_ID, CONF_IS_GATEWAY
+
 _LOGGER = logging.getLogger(__name__)
+
+
+@callback
+def async_config_entry_by_device_id(hass, device_id):
+    """Look up config entry by device id."""
+    current_entries = hass.config_entries.async_entries(DOMAIN)
+    for entry in current_entries:
+        if entry.data[CONF_DEVICE_ID] == device_id:
+            return entry
+    return None
+
+
+@callback
+def async_config_entry_gateway(hass):
+    """Look up gateway config entry."""
+    current_entries = hass.config_entries.async_entries(DOMAIN)
+    entries = set ()
+    for entry in current_entries:
+        if CONF_IS_GATEWAY in entry.data and entry.data[CONF_IS_GATEWAY]:
+            entries.add(entry.data[CONF_DEVICE_ID])
+
+    return list(entries)
 
 
 class TuyaLocalEntity:
